@@ -135,7 +135,22 @@ public class JsonPage implements HttpHandler {
 		}
 		// aggiorno i nuovi valori
 		ferramenta.updateID(table.get("id"));
-		ferramenta.updateN(Integer.valueOf(table.get("N")));
+		try {
+			if (table.containsKey("N")) {
+				ferramenta.updateN(Integer.valueOf(table.get("N")));
+			}
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid number format for N");
+			return "Error: Invalid data format";
+		}
+		if (table.containsKey("Usato")) {
+			try {
+				boolean isUsed = Boolean.parseBoolean(table.get("Usato"));
+				ferramenta.updateusato(isUsed);
+			} catch (Exception e) {
+				System.out.println("Error parsing Usato value");
+			}
+		}
 		response = gson.toJson(ferramenta);
 		// scrivo i nuovi valori sul file json
 		try {
@@ -185,8 +200,23 @@ public class JsonPage implements HttpHandler {
 				table.put(tempo[0], tempo[1]);
 		}
 		// creo oggetto ferramenta
-		Ferramenta ferramenta = new Ferramenta(table.get("id").toString(), Integer.valueOf(table.get("N")),
-				Boolean.parseBoolean(table.get("Usato")));
+		String id = table.get("id") != null ? table.get("id").toString() : "";
+		int quantity = 0;
+		boolean isUsed = false;
+
+		try {
+			if (table.get("N") != null) {
+				quantity = Integer.valueOf(table.get("N"));
+			}
+			if (table.get("Usato") != null) {
+				isUsed = Boolean.parseBoolean(table.get("Usato"));
+			}
+		} catch (NumberFormatException e) {
+			System.out.println("Invalid number format for quantity");
+			return "Error: Invalid data format";
+		}
+
+		Ferramenta ferramenta = new Ferramenta(id, quantity, isUsed);
 		// creo nuovo file
 		File fail = new File(page + "/" + namefile + ".json");
 		try {
